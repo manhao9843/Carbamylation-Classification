@@ -46,7 +46,7 @@ class AttentionBasedNN(nn.Module):
         X = self.layernorm3(X)
         X = self.residual3(X)
         
-        # 2. global attention for lys + residual connection + layer normalization
+        # 2. global attention for the lys vectpr + layer normalization
         X_lys = torch.select(X, 1, lys_pos).unsqueeze(1)
         X_lys = self.globalattention(X_lys,X,X) + X_lys
         X_lys = self.layernorm4(X_lys)
