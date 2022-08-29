@@ -19,13 +19,16 @@ class MyDataset(Dataset):
 
 def collate_batch(batch):
     label_list, text_list, = [], []
+    # essential for masked softmax
+    valid_lens = []
    
     for (_text,_label) in batch:
         label_list.append(_label)
         text_list.append(_text)
+        valid_lens.append(_text.shape[0])
    
     label_list = torch.tensor(label_list, dtype=torch.int64)
     text_list = pad_sequence(text_list, batch_first=True, padding_value=0)
    
-    return text_list,label_list
+    return text_list,label_list, torch.tensor(valid_lens)
 
