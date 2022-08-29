@@ -5,7 +5,28 @@ import torch
 import plotly.graph_objects as go
 import numpy as np
 
-def inference(model, dataloader, device, with_returns=False):
+def inference(model, dataloader, device, with_return=False):
+    
+    model.eval()
+    pred_list = list()
+    true_list = list()
+
+    with torch.no_grad():
+        for X, y,valid_lens in dataloader:
+            X, y = X.to(device), y.to(device)
+            logits = model(X,valid_lens,0)
+            prob = nn.Softmax(dim=1)(logits)
+            y_pred = prob.argmax(1)
+            pred_list += y_pred.tolist()
+            true_list += y.tolist()
+    
+    if with_return:
+        return pred_list, true_list
+    print(confusion_matrix(true_list,pred_list))
+    print(classification_report(true_list,pred_list))
+    print(accuracy_score(true_list, pred_list))
+
+def inference_mlp(model, dataloader, device, with_return=False):
     
     model.eval()
     pred_list = list()
@@ -14,27 +35,25 @@ def inference(model, dataloader, device, with_returns=False):
     with torch.no_grad():
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
-            logits = model(X,0)
+            logits = model(X)
             prob = nn.Softmax(dim=1)(logits)
             y_pred = prob.argmax(1)
             pred_list += y_pred.tolist()
             true_list += y.tolist()
-    
+    if with_return:
+        return pred_list, true_list
     print(confusion_matrix(true_list,pred_list))
     print(classification_report(true_list,pred_list))
     print(accuracy_score(true_list, pred_list))
     
-    if with_returns:
-        return pred_list, true_list
-
-
+    
 def plot_loss(train_loss_storage, test_loss_storage):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=np.array(range(len(train_loss_storage))), y=train_loss_storage,
                     mode='lines',
                     name='Training Loss'))
     
-    fig.add_trace(go.Scatter(x=np.array(range(len(train_loss_storage))), y=test_loss_storage,
+    fig.add_trace(go.Scatter(x=np.array(range(len(test_loss_storage))), y=test_loss_storage,
                     mode='lines',
                     name='Validation Loss'))
     
@@ -48,7 +67,7 @@ def plot_acc(train_acc_storage, test_acc_storage):
                     mode='lines',
                     name='Training Loss'))
     
-    fig.add_trace(go.Scatter(x=np.array(range(len(train_acc_storage))), y=test_acc_storage,
+    fig.add_trace(go.Scatter(x=np.array(range(len(test_acc_storage))), y=test_acc_storage,
                     mode='lines',
                     name='Validation Loss'))
     
