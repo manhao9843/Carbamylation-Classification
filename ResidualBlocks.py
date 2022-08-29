@@ -1,8 +1,9 @@
 from torch import nn
+import torch
 
-class ResidualFC(nn.Module):
+class ResidualFeedForward(nn.Module):
     def __init__(self, input_length, num_hidden, **kwargs):
-        super(ResidualFC, self).__init__(**kwargs)
+        super(ResidualFeedForward, self).__init__(**kwargs)
         self.linear1 = nn.Linear(input_length, num_hidden, bias=False)
         self.linear2 = nn.Linear(num_hidden, input_length, bias=False)
         self.activation1 = nn.ReLU()
