@@ -6,4 +6,4 @@ This work starts with a dataframe documenting the Ground Truth, which can be obt
 * MLP training and testing (see [notebook](https://github.com/manhao9843/AttentionBasedNetwork/blob/main/Notebook_MLP.ipynb)).
 
 Here shows Attention based network architecture:
-![This is an image](https://github.com/manhao9843/AttentionBasedNetwork/blob/main/Network.png)
+![This is an image](https://github.com/manhao9843/AttentionBasedNetwork/blob/main/new%20network.png)
