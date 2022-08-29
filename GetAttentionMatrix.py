@@ -3,10 +3,13 @@ import torch.nn
 from torch import nn
 import matplotlib.pyplot as plt
 from matplotlib import ticker
+"""
+which_attention can be one value from [0,1,2,3]
 
+"""
 def GetAttentionScores(input_, model, device, which_attention):
     
-    # check dimension: [batch_size, num_amino, 44], batch_size = 1
+    # check dimension: [1, num_amino, 44]
     if len(input_.shape) != 3:
         X = input_.unsqueeze(0).to(device)
     else:
@@ -20,25 +23,29 @@ def GetAttentionScores(input_, model, device, which_attention):
         prob = nn.Softmax(dim=1)(logits)
         y_pred = prob.argmax(1).item()
         
+        # 1st attention
         X = model.attention1(X,X,X, valid_lens = valid_lens) + X
         score1 = model.attention1.attention_weights
         if which_attention == 0:
             return score1, y_pred
         
+        # 2nd attention
         X = model.layernorm1(X)
         X = model.residual1(X)
         X = model.attention2(X,X,X, valid_lens = valid_lens) + X
         score2 = model.attention2.attention_weights
         if which_attention == 1:
             return score2, y_pred
-
+        
+        # 3rd attention
         X = model.layernorm2(X)
         X = model.residual2(X)
         X = model.attention3(X,X,X, valid_lens = valid_lens) + X
         score3 = model.attention3.attention_weights
         if which_attention == 2:
             return score3, y_pred
-
+        
+        # global attention
         X = model.layernorm3(X)
         X = model.residual3(X)
         X_lys = torch.select(X, 1, 0).unsqueeze(1)
@@ -49,8 +56,12 @@ def GetAttentionScores(input_, model, device, which_attention):
         
         return 'Attention not found.'
 
-    
+"""
+decode_dict = ['ALA', 'ARG', 'ASN', 'ASP', 'CYS', 'GLU', 'GLN', 'GLY', 'HIS', 'ILE',
+               'LEU', 'LYS', 'MET', 'PHE', 'PRO', 'SER', 'THR', 'TRP', 'TYR', 'VAL']
+"""
 def ShowAttentionScores(input_, label, model, device, which_attention, decode_dict, save_path = None, size=10):
+    # get attention scores
     try:
         scores, y_pred = GetAttentionScores(input_, model, device, which_attention)
     except Exception as e:
@@ -62,7 +73,7 @@ def ShowAttentionScores(input_, label, model, device, which_attention, decode_di
     else:
         X = input_
     
-    # get the identity of amino acids
+    # get amino acid identities
     amino_acids = list()
     X = X[:,:20]
     for i in X:
@@ -70,7 +81,7 @@ def ShowAttentionScores(input_, label, model, device, which_attention, decode_di
         amino_name = decode_dict[amino_ID]
         amino_acids.append(amino_name)
     
-    # show the matrix
+    # show attention matrix
     fig = plt.figure(figsize = [size,size])
     ax = fig.add_subplot(111)
     cax = ax.matshow(scores.squeeze(0).detach().numpy(), cmap='Greens')
